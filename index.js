@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -31,7 +31,7 @@ async function run() {
     // Collections
     const jobCollection = client.db("jobsDB").collection("jobs");
 
-    // GET Jobs
+    // GET Jobs by category
     app.get("/api/v1/jobs", async (req, res) => {
       const category = req.query.cat;
       let query = {};
@@ -39,6 +39,14 @@ async function run() {
         query.category = category;
       }
       const result = await jobCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // GET Job by id
+    app.get("/api/v1/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await jobCollection.findOne(filter);
       res.send(result);
     });
   } finally {
