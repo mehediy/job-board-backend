@@ -33,7 +33,12 @@ async function run() {
 
     // GET Jobs
     app.get("/api/v1/jobs", async (req, res) => {
-      const result = await jobCollection.find().toArray();
+      const category = req.query.cat;
+      let query = {};
+      if (category) {
+        query.category = category;
+      }
+      const result = await jobCollection.find(query).toArray();
       res.send(result);
     });
   } finally {
