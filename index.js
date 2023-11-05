@@ -27,6 +27,15 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+
+    // Collections
+    const jobCollection = client.db("jobsDB").collection("jobs");
+
+    // GET Jobs
+    app.get("/api/v1/jobs", async (req, res) => {
+      const result = await jobCollection.find().toArray();
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
