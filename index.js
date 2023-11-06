@@ -34,10 +34,17 @@ async function run() {
     // GET Jobs by category
     app.get("/api/v1/jobs", async (req, res) => {
       const category = req.query.cat;
+      const searchQuery = req.query.q;
       let query = {};
       if (category) {
         query.category = category;
       }
+
+      if (searchQuery) {
+        // Regular expression for case-insensitive search
+        query.title = { $regex: searchQuery, $options: "i" };
+      }
+
       const result = await jobCollection.find(query).toArray();
       res.send(result);
     });
