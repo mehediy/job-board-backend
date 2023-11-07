@@ -63,6 +63,14 @@ async function run() {
       res.send(result);
     });
 
+    // Delete Job
+    app.delete("/api/v1/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await jobCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     // Get Jobs by email
     app.get("/api/v1/jobs/user/:email", async (req, res) => {
       const email = req.params.email;
