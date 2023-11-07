@@ -62,6 +62,14 @@ async function run() {
       const result = await jobCollection.findOne(filter);
       res.send(result);
     });
+
+    // Get Jobs by email
+    app.get("/api/v1/jobs/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await jobCollection.find(filter).toArray();
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
