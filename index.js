@@ -30,6 +30,7 @@ async function run() {
 
     // Collections
     const jobCollection = client.db("jobsDB").collection("jobs");
+    const appliedCollection = client.db("jobsDB").collection("applied");
 
     // GET Jobs by category
     app.get("/api/v1/jobs", async (req, res) => {
@@ -52,6 +53,51 @@ async function run() {
     app.post("/api/v1/jobs", async (req, res) => {
       const body = req.body;
       const result = await jobCollection.insertOne(body);
+      res.send(result);
+    });
+
+    // Apply Job
+    app.post("/api/v1/apply-job", async (req, res) => {
+      const body = req.body;
+
+      const existingApplication = await appliedCollection.findOne({
+        job_id: body.job_id,
+        email: body.email,
+      });
+
+      if (existingApplication) {
+        // If an existing application is found, return an error response
+        res.status(400).send({
+          success: false,
+          message: "User has already applied for this job",
+        });
+      } else {
+        // Increment the "applicants" count
+        const result = await jobCollection.findOneAndUpdate(
+          { _id: new ObjectId(body.job_id) },
+          { $inc: { applicants: 1 } }
+        );
+
+        if (result) {
+          // Insert the application
+          const applicationResult = await appliedCollection.insertOne(body);
+          res.send(applicationResult);
+        } else {
+          res.status(500).send({
+            success: false,
+            message: 'Failed to update "applicants" count',
+          });
+        }
+      }
+    });
+
+    // GET Applied jobs
+    // incomplete
+    app.get("/api/v1/applied-jobs/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const filter = { email: email };
+      const result = await jobCollection.find(filter).toArray();
       res.send(result);
     });
 
