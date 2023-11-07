@@ -49,6 +49,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/api/v1/jobs", async (req, res) => {
+      const body = req.body;
+      const result = await jobCollection.insertOne(body);
+      res.send(result);
+    });
+
     // GET Job by id
     app.get("/api/v1/job/:id", async (req, res) => {
       const id = req.params.id;
