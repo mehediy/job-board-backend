@@ -1,13 +1,21 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
 import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dqfkiqe.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -27,6 +35,21 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+
+    const verifyToken = (req, res, next) => {
+      const { token } = req.cookies;
+
+      if (!token) {
+        return res.status(401).send({ message: "Unauthorized" });
+      }
+      jwt.verify(token, process.env.SECRET, function (err, decoded) {
+        if (err) {
+          return res.status(401).send({ message: "Unauthorized" });
+        }
+        req.user = decoded;
+        next();
+      });
+    };
 
     // Collections
     const jobCollection = client.db("jobsDB").collection("jobs");
@@ -57,7 +80,7 @@ async function run() {
     });
 
     // Apply Job
-    app.post("/api/v1/apply-job", async (req, res) => {
+    app.post("/api/v1/apply-job", verifyToken, async (req, res) => {
       const body = req.body;
 
       const existingApplication = await appliedCollection.findOne({
@@ -102,7 +125,7 @@ async function run() {
     });
 
     // GET Job by id
-    app.get("/api/v1/job/:id", async (req, res) => {
+    app.get("/api/v1/job/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(filter);
@@ -139,6 +162,22 @@ async function run() {
       const filter = { email: email };
       const result = await jobCollection.find(filter).toArray();
       res.send(result);
+    });
+
+    app.post("/api/v1/auth/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.SECRET);
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
+
+    app.post("/api/v1/logout", verifyToken, async (req, res) => {
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
   } finally {
     // Ensures that the client will close when you finish/error
