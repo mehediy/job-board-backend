@@ -9,13 +9,17 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://jobs-69b32.web.app",
+      "https://jobs-69b32.firebaseapp.com",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dqfkiqe.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -31,10 +35,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
 
     const verifyToken = (req, res, next) => {
       const { token } = req.cookies;
