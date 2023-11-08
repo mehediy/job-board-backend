@@ -73,7 +73,10 @@ async function run() {
         query.title = { $regex: searchQuery, $options: "i" };
       }
 
-      const result = await jobCollection.find(query).toArray();
+      const result = await jobCollection
+        .find(query)
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
@@ -183,7 +186,10 @@ async function run() {
     app.get("/api/v1/jobs/user/:email", async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
-      const result = await jobCollection.find(filter).toArray();
+      const result = await jobCollection
+        .find(filter)
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
