@@ -59,7 +59,7 @@ async function run() {
     const jobCollection = client.db("jobsDB").collection("jobs");
     const appliedCollection = client.db("jobsDB").collection("applied");
 
-    // GET Jobs by category
+    // GET Jobs / by querying
     app.get("/api/v1/jobs", async (req, res) => {
       const category = req.query.cat;
       const searchQuery = req.query.q;
@@ -74,6 +74,16 @@ async function run() {
       }
 
       const result = await jobCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // GET Popular Jobs (by applicants)
+    app.get("/api/v1/popular-jobs/", async (req, res) => {
+      const result = await jobCollection
+        .find()
+        .sort({ applicants: -1 })
+        .limit(3)
+        .toArray();
       res.send(result);
     });
 
