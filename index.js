@@ -115,12 +115,16 @@ async function run() {
     });
 
     // GET Applied jobs
-    // incomplete
-    app.get("/api/v1/applied-jobs/:email", async (req, res) => {
-      const email = req.params.email;
-
-      const filter = { email: email };
-      const result = await jobCollection.find(filter).toArray();
+    app.get("/api/v1/applied-jobs/", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      if (req.user.email !== email) {
+        return res.status(403).send({ message: "Access denied" });
+      }
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const result = await appliedCollection.find(query).toArray();
       res.send(result);
     });
 
