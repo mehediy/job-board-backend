@@ -117,12 +117,17 @@ async function run() {
     // GET Applied jobs
     app.get("/api/v1/applied-jobs/", verifyToken, async (req, res) => {
       const email = req.query.email;
+      const category = req.query.category;
       if (req.user.email !== email) {
         return res.status(403).send({ message: "Access denied" });
       }
       const query = {};
       if (email) {
         query.email = email;
+      }
+
+      if (category) {
+        query.category = category;
       }
       const result = await appliedCollection.find(query).toArray();
       res.send(result);
